@@ -5,13 +5,13 @@
 2. Regardless who you are and what are you working on, if you find a bug in any project, you must create a task for it. The description may be hight level, a more qualified specialist will improve it later if needed
 
 ## Task fields
-  * Description. Obvious
-  * Priority. Obvious
-  * Due date. Obvious
-  * Time tracking. Obvious
+  * Description. What should be done in a task
+  * Priority. How important is the task
+  * Due date. When should the task be finished and ready for delivery
+  * Time tracking
   * [Contributors](#contributors)
-    * Reporter. It is a standard field. Obvious
-    * Assignee. It is a standard field. Obvious
+    * Reporter. It is a standard field. A person who created the task
+    * Assignee. It is a standard field. A person who is currently taking the task
     * [Manager](#manager-task-field)
     * [Executor](#executor-task-field)
     * [Reviewer](#reviewer-task-field)
@@ -22,18 +22,18 @@
   * `Draft`: the task is just created. Not ready for the development
   * `Approved`: the task was approved. We may start working on it according to priorities
   * `Rejected`: the task was rejected. Still may be approved if the reporter improves the description or brings new arguments
-  * `Under Review:` the task is solved and awaits for the code review
-  * `Reviewed`: the task was reviewed
+  * `Under Review` the task is solved and awaits for the code review
+  * `Reviewed`: the task passed the code review
   * `Under QA`: the task awaits for the QA
   * `QA OK`: the task passed the QA
-  * `Returned`: the task was returned back to the development (either from CR or testing)
+  * `Returned`: the task was returned back to the development (either from CR or QA)
   * `Done`: the task is completely solved
 
 ## Task types
   * Development tasks. There is no functional difference between them. It is only for visualization or statistics
     * `Bug`: some issue, something to fix
     * `Feature`: something new to add
-    * `Refactoring`: something to improve
+    * `Refactoring`: something to refactor
   * Special tasks
     * [Question](#question-task-type)
     * [Step](#step-task-type)
@@ -61,7 +61,7 @@ This type does not have "QA" and "Reviewer" fields.
     * Approved. We will solve it
     * Rejected. We will not solve it or the reporter must describe the task better
   * Approved. The Assignee is cleared
-    * Draft. there is something wrong with the task. A manager's attention required
+    * Draft. There is something wrong with the task. A manager's attention required
     * Under Review. The task is solved by an executor. Now it is waiting code review
   * Rejected. Auto reassigned to the reporter:
     * Draft. The reporter improved the description or brought new arguments
@@ -72,7 +72,7 @@ This type does not have "QA" and "Reviewer" fields.
     * Under Review. If more work from reviewers is required
     * Under QA
     * Done. The task transitions to this status automatically if the "QA" field is empty or absent
-  * Under QA:
+  * Under QA. Auto reassigned to the [QA](#qa-task-field):
     * QA OK
     * Returned
   * QA OK. Auto reassigned to the [Executor](#executor-task-field):
@@ -89,7 +89,6 @@ Also, give access to the project only to certain people.
 
 ## Contributors
 Contributors are people contributing to a task. Those people transition a task from one state to another until it is finally done.
-There are different contributor roles like executor, QA, reviewer, etc.
 
 **Important note**: if you are assigned as a contributor to a task, it does not necessarily mean you will contribute to it, but **you will always be responsible for the contribution** ([why?](#why-am-i-responsible-for-contribution)).
 
@@ -131,7 +130,7 @@ When the review is done and the task's status is changed, the task is automatica
 QA is a person who is responsible for the quality assurance of the task.
 QA reads the task description and ensures that the application works according the description.
 
-The field is good for automatization: when an executor prepares an RC and changes the task's status to "Under test", the task is reassigned to the "QA".
+The field is good for automatization: when an executor prepares an RC and changes the task's status to "Under QA", the task is reassigned to the "QA".
 
 When the QA is done and the task's status is changed, the task is automatically reassigned to the executor.
 
@@ -139,13 +138,13 @@ When the QA is done and the task's status is changed, the task is automatically 
 1. Sprint planning. The team meets and decide what will be accomplished within the next sprint (1-4 weeks). Move tasks from the backlog to the sprint. I would auto assign a task to the "Executor" when it is moved to the sprint. The team may also create the next release version if not done yet
 2. Contributors solve the tasks within the sprint. See [task solving](#task-solving)
 3. After the sprint is finished, the team gather for retrospection meeting and work on the next sprint (go to [1])
-4. At some point we release the changes
+4. At some point the team releases the changes
 
 ### Task solving
 1. The Executor solves the task in a separate git branch
-2. The Executor pushes the changes. It is either a pull request (preferred) or a direct push to the branch. In case of a pull request, the Executor selects the reviewers
+2. The Executor creates a pull request
 3. The Executor changes the task's status to "Under Review". The task is automatically reassigned to the "Reviewer"
-4. Reviewers review the task. The task's Reviewer is responsible for ensuring that all the reviewers have reviewed the task (easier to achieve with pull requests). Once the task is reviewed, it is merged to the "master" and the task's status is changed to "Reviewed" or "Returned" (see [task is returned from CR](#task-is-returned-from-cr))
+4. Reviewers review the task. The task's "Reviewer" is responsible for ensuring that all the reviewers have reviewed the task. Once the task is reviewed, it is merged to the main branch and the task's status is changed to "Reviewed" or "Returned" (see [task is returned from CR](#task-is-returned-from-cr))
 5. Once the [RC is prepared](#rc-preparation), the Executor changes the task's status to "Under QA". The task is automatically reassigned to the "QA". The QA's job must be clear from the task's description or the last comment. Once the QA is done, the task's status is changed to "QA OK" or "Returned" (see [task is returned from QA](#task-is-returned-from-qa))
 6. The Executor checks the QA output and changes the task's status to "Done"
 
@@ -154,11 +153,12 @@ If a task is returned from CR, the Executor must decide if it is justified. If n
 Otherwise, the Executor fixes the issues found during CR and asks for the CR again. Usually, the fixes are pushed to the same git branch.
 
 ### Task is returned from QA
-The same as with code review, the task may be assigned back to QA if the QA's conclusion is not justified (e.g. QA did something wrong).
+The same as with code reviews, the task may be assigned back to QA if the QA's conclusion is not justified (e.g. QA did something wrong).
 Otherwise, the [task solving](#task-solving) cycle repeats.
 
 ### RC preparation
 At some point, when there is something ready to be tested, the release "Executor" may decide to build a release candidate (RC):
+  * The Executor creates a [release task](#release-task-type) if not already created
   * The Executor creates "X.Y.ZrcN" git tag, where "X.Y.Z" - current release version, and "N" - the sequential RC number
   * The CI builds the package and makes it available for testing
   * The Executor sets the "RC" field for each task that belongs to the RC
